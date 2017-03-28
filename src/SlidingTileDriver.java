@@ -20,7 +20,7 @@ public class SlidingTileDriver {
 	 * @param goal The end of the path that must be printed.
 	 */
 
-	final static int INSTANCES = 10;
+	final static int INSTANCES = 100;
 	final static int MAX_DISTANCE = 30;
 
 
@@ -144,9 +144,10 @@ public class SlidingTileDriver {
 			cpuTime[arrayIndex][4] = (aStarManAverages[2][arrayIndex] / INSTANCES);
 			cpuTime[arrayIndex][5] = (idaStarMisAverages[2][arrayIndex] / INSTANCES);
 			cpuTime[arrayIndex][6] = (idaStarManAverages[2][arrayIndex] / INSTANCES);
-
-			optimalLength +=2;
+			
 			System.out.println("Generating " + INSTANCES + " puzzles of " + optimalLength + " length...");
+			optimalLength +=2;
+			
 
 		}while(optimalLength <= MAX_DISTANCE);
 
