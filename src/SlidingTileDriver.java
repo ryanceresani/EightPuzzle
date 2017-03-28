@@ -1,3 +1,7 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
@@ -16,8 +20,8 @@ public class SlidingTileDriver {
 	 * @param goal The end of the path that must be printed.
 	 */
 
-	final static int INSTANCES = 20;
-	final static int MAX_DISTANCE = 16;
+	final static int INSTANCES = 10;
+	final static int MAX_DISTANCE = 30;
 
 
 	public static void printSolutionPath(SearchNode goal) {
@@ -31,7 +35,7 @@ public class SlidingTileDriver {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		// The constructor to SlidingTilePuzzle takes 3 parameters.
 		// The first 2 are the dimensions (number of rows and columns), so for the 8-puzzle, you'd use 3,3.
@@ -149,59 +153,63 @@ public class SlidingTileDriver {
 		printTables(expandedNodes, maxNodes, cpuTime);
 	}
 
-	private static void printTables(double[][] expandedNodes, double[][] maxNodes, double[][] cpuTime) {
+	private static void printTables(double[][] expandedNodes, double[][] maxNodes, double[][] cpuTime) throws IOException {
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("lastRun.txt")));
 		String nodeFormat = "| %-12.1f | %-15.2f | %-15.2f | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
 		String cpuFormat = "| %-12.1f | %-15.10f | %-15.10f | %-15.10f | %-15.10f | %-15.10f | %-15.10f |%n";
 
-		System.out.println("+======Expanded Nodes======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		bw.write(String.format("Tyler Sefcik and Ryan Ceresani%n"));
+		bw.write(String.format("AI HW #8 including IDA*%n%n%n"));
+		bw.write(String.format("Number of puzzle instances = " + INSTANCES +"%n%n"));
+		bw.write(String.format("+======Average Expanded Nodes======+%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
+		bw.write(String.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		for (int i = 0; i < expandedNodes.length; i++) {
 			if(expandedNodes[i][1] == 0){
 				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
-				System.out.format(nodeFormat, expandedNodes[i][0], "-", 
-						"-", expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]);
-			} else {System.out.format(nodeFormat, expandedNodes[i][0], expandedNodes[i][1], 
-					expandedNodes[i][2], expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]);
+				bw.write(String.format(nodeFormat, expandedNodes[i][0], "-", 
+						"-", expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]));
+			} else {bw.write(String.format(nodeFormat, expandedNodes[i][0], expandedNodes[i][1], 
+					expandedNodes[i][2], expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]));
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+			bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		}
 
 		System.out.println();
-		System.out.println("+======Max Memory Nodes======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		bw.write(String.format("+======Average Max Memory Nodes======+%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
+		bw.write(String.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		for (int i = 0; i < maxNodes.length; i++) {
 			if(maxNodes[i][1] == 0){
 				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
-				System.out.format(nodeFormat, maxNodes[i][0], "-", 
-						"-", maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]);
+				bw.write(String.format(nodeFormat, maxNodes[i][0], "-", 
+						"-", maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]));
 			} else {
-				System.out.format(nodeFormat, maxNodes[i][0], maxNodes[i][1], maxNodes[i][2],
-						maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]);
+				bw.write(String.format(nodeFormat, maxNodes[i][0], maxNodes[i][1], maxNodes[i][2],
+						maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]));
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+			bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		}
 
 
 		System.out.println();
-		System.out.println("+======CPU Time======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		bw.write(String.format("+======Average CPU Time======+%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
+		bw.write(String.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n"));
+		bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		for (int i = 0; i < cpuTime.length; i++) {
 			if(maxNodes[i][1] == 0){
 				cpuFormat = "| %-12.1f | %-15s | %-15s | %-15.10f | %-15.10f | %-15.10f | %-15.10f |%n";
-				System.out.format(cpuFormat, cpuTime[i][0], "-", 
-						"-", cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]);
+				bw.write(String.format(cpuFormat, cpuTime[i][0], "-", 
+						"-", cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]));
 			} else {
-				System.out.format(cpuFormat, cpuTime[i][0], cpuTime[i][1], cpuTime[i][2],
-						cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]);
+				bw.write(String.format(cpuFormat, cpuTime[i][0], cpuTime[i][1], cpuTime[i][2],
+						cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]));
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+			bw.write(String.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n"));
 		}
-
+		bw.close();
 	}
 }
