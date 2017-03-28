@@ -21,7 +21,7 @@ public class SearchProblem {
 
 	final private State start;
 	final private State goal;
-	
+
 	/**
 	 * Use this constructor for search problems where
 	 * there is a single start state and for which
@@ -35,7 +35,7 @@ public class SearchProblem {
 		this.start = start;
 		goal = null;
 	}
-	
+
 	/**
 	 * Constructs a search problem with specified start and
 	 * goal states.
@@ -47,16 +47,16 @@ public class SearchProblem {
 		this.start = start;
 		this.goal = goal;
 	}
-	
+
 	/*
 	 * Helper method for checking if a State is the goal.
 	 */
 	private boolean goalCheck(State s) {
 		return goal != null && s.equals(goal) || goal == null && s.isGoalState();
 	}
-	
-		
-	
+
+
+
 	/**
 	 * Uniform Cost Search
 	 * 
@@ -66,16 +66,16 @@ public class SearchProblem {
 	 * Returns null if the Goal was not found.
 	 */
 	public SearchNode uniformCostSearch() {
-		
+
 		// not logically necessary.  here to track memory usage
 		maxNodesInMemory = 1;
 		State.resetStats();
-		
+
 		// HOMEWORK SOLUTION
-		
+
 		if (goalCheck(start)) 
 			return new SearchNode(start);
-		
+
 		class MyComparator implements Comparator<SearchNode> {
 			@Override
 			public int compare(SearchNode o1, SearchNode o2) {
@@ -86,7 +86,7 @@ public class SearchProblem {
 		frontier.offer(new SearchNode(start));
 		HashMap<State,Integer> generated = new HashMap<State,Integer>();
 		generated.put(start,0);
-		
+
 		while (!frontier.isEmpty()) {
 			SearchNode s = frontier.poll();
 			if (goalCheck(s.getState())) {
@@ -110,12 +110,12 @@ public class SearchProblem {
 		}
 		maxNodesInMemory = generated.size();
 		return null;
-		
-		
+
+
 	}
 
-	
-	
+
+
 	/**
 	 * Depth First Search (path checking DFS)
 	 * 
@@ -128,23 +128,23 @@ public class SearchProblem {
 		State.resetStats();
 		return depthLimitedDFS(Integer.MAX_VALUE - 1);
 	}
-	
+
 	/*
 	 * Helper method for path-checking DFS.  Checks if a State is already in the current path.
 	 */
 	private boolean isOnPath(SearchNode pathEnd, State s) {
-		
+
 		while (pathEnd != null) {
 			if (pathEnd.getState().equals(s)) return true;
 			pathEnd = pathEnd.getBackpointer();
 		}
 		return false;
 	}
-	
+
 	// field used to pass info from depthLimitedDFS to iterativeDeepening on whether the search space contains
 	// anything beyond the prior depth limit
 	private boolean didLimit;
-	
+
 	/**
 	 * Depth Limited DFS
 	 * 
@@ -158,14 +158,14 @@ public class SearchProblem {
 	public SearchNode depthLimitedDFS(int limit) {
 		// not logically necessary.  here to track memory usage
 		maxNodesInMemory = 1;
-				
+
 		didLimit = false;
 		if (goalCheck(start)) 
 			return new SearchNode(start);
-		
+
 		Stack<SearchNode> frontier = new Stack<SearchNode>();
 		frontier.push(new SearchNode(start));
-		
+
 		while (!frontier.isEmpty()) {
 			SearchNode s = frontier.pop();
 			int pathLength = s.getPathLengthToNode();
@@ -187,7 +187,7 @@ public class SearchProblem {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Iterative Deepening Search
 	 * 
@@ -200,7 +200,7 @@ public class SearchProblem {
 		long localNodeCount = 0;
 		State.resetStats();
 		didLimit = true;
-		
+
 		for (int L = 1; didLimit; L++) {
 			SearchNode s = depthLimitedDFS(L);
 			localNodeCount = Math.max(localNodeCount, maxNodesInMemory);
@@ -212,7 +212,8 @@ public class SearchProblem {
 		maxNodesInMemory = localNodeCount;
 		return null;
 	}
-	
+
+
 	/**
 	 * A* Search.
 	 * 
@@ -223,14 +224,14 @@ public class SearchProblem {
 	 * Returns null if the Goal was not found.
 	 */	
 	public SearchNode AStarSearch(HeuristicFunction h) {
-		
+
 		// not logically necessary.  here to track memory usage
 		maxNodesInMemory = 1;
 		State.resetStats();
-		
+
 		if (goalCheck(start)) 
 			return new SearchNode(start);
-		
+
 		// A* needs f values for the priority queue.
 		// This subclass of SearchNode provides that.  Inner class since only needed here.
 		class AStarNode extends SearchNode {
@@ -245,7 +246,7 @@ public class SearchProblem {
 			}
 			public int getF() { return f; }
 		}
-		
+
 		// Comparator which compares the f values.  Needed for the priority queue.
 		class MyComparator implements Comparator<AStarNode> {
 			@Override
@@ -253,12 +254,12 @@ public class SearchProblem {
 				return o1.getF()-o2.getF();
 			}
 		}
-		
+
 		PQ<AStarNode> frontier = new PQ<AStarNode>(new MyComparator());
 		frontier.offer(new AStarNode(start));
 		HashMap<State,Integer> generated = new HashMap<State,Integer>();
 		generated.put(start,h.h(start));
-		
+
 		while (!frontier.isEmpty()) {
 			AStarNode s = frontier.poll();
 			if (goalCheck(s.getState())) {
@@ -284,6 +285,68 @@ public class SearchProblem {
 		return null;
 	}
 	
+	public SearchNode IDAStarSearch(HeuristicFunction h){
+
+		class AStarNode extends SearchNode {
+			private int f;
+			public AStarNode(State state) {
+				super(state);
+				f = getG()+h.h(state);
+			}
+			public AStarNode(State state, AStarNode back) {
+				super(state,back);
+				f = getG()+h.h(state);
+			}
+			public int getF() { return f; }
+		}
+		
+		// not logically necessary.  here to track memory usage
+		maxNodesInMemory = 1;
+		long localNodeCount = 0;
+		State.resetStats();
+		
+		didLimit = true;
+
+		for (int L = 0; didLimit; L++) {
+			didLimit = false;
+			if (goalCheck(start)) 
+				return new SearchNode(start);
+
+			Stack<AStarNode> frontier = new Stack<AStarNode>();
+			frontier.push(new AStarNode(start));
+			AStarNode eS = null;
+			
+			while (!frontier.isEmpty()) {
+				AStarNode s = frontier.pop();
+				int f = s.getF();
+				int pathLength = s.getPathLengthToNode();
+				if (f >= L) {
+					didLimit = true;
+					continue;
+				}
+				Collection<State> succs = s.getState().getSuccessors();
+				for (State e : succs) {
+					if (goalCheck(e)) {
+						maxNodesInMemory = Math.max(maxNodesInMemory, frontier.size()+1+pathLength);
+						 eS = new AStarNode(e, s);
+					}
+					if (!isOnPath(s,e)) {
+						frontier.push(new AStarNode(e, s));
+						maxNodesInMemory = Math.max(maxNodesInMemory, frontier.size()+pathLength);
+					}
+				}
+			}
+			
+			localNodeCount = Math.max(localNodeCount, maxNodesInMemory);
+			if (eS != null) {
+				maxNodesInMemory = localNodeCount;
+				return eS;
+			}
+		}
+		maxNodesInMemory = localNodeCount;
+		return null;
+	}
+
 	/**
 	 * Gets the maximum number of nodes that the last executed search had in memory.
 	 * @return
@@ -291,12 +354,12 @@ public class SearchProblem {
 	public long getMaxNodeCount() {
 		return maxNodesInMemory;
 	}
-	
-	
+
+
 	private long maxNodesInMemory;
-	
-	
-	
-	
-	
+
+
+
+
+
 }

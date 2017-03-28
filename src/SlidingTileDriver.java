@@ -16,8 +16,8 @@ public class SlidingTileDriver {
 	 * @param goal The end of the path that must be printed.
 	 */
 
-	final static int INSTANCES = 4;
-	final static int MAX_DISTANCE = 18;
+	final static int INSTANCES = 20;
+	final static int MAX_DISTANCE = 16;
 
 
 	public static void printSolutionPath(SearchNode goal) {
@@ -48,15 +48,17 @@ public class SlidingTileDriver {
 
 		ThreadMXBean bean = ManagementFactory.getThreadMXBean();
 
-		double[][] expandedNodes = new double[MAX_DISTANCE/2][5];
-		double[][] maxNodes = new double[MAX_DISTANCE/2][5];
-		double[][] cpuTime = new double[MAX_DISTANCE/2][5];
+		double[][] expandedNodes = new double[MAX_DISTANCE/2][7];
+		double[][] maxNodes = new double[MAX_DISTANCE/2][7];
+		double[][] cpuTime = new double[MAX_DISTANCE/2][7];
 
 		do{
 			double[][] idAverages = new double[3][MAX_DISTANCE/2];
 			double[][] ucsAverages = new double[3][MAX_DISTANCE/2];
 			double[][] aStarMisAverages = new double[3][MAX_DISTANCE/2];
 			double[][] aStarManAverages = new double[3][MAX_DISTANCE/2];
+			double[][] idaStarMisAverages = new double[3][MAX_DISTANCE/2];
+			double[][] idaStarManAverages = new double[3][MAX_DISTANCE/2];
 
 			int arrayIndex = optimalLength/2 - 1;
 
@@ -97,161 +99,108 @@ public class SlidingTileDriver {
 				aStarManAverages[1][arrayIndex] += problem.getMaxNodeCount();
 				aStarManAverages[2][arrayIndex] += totalTime/1000000000.0;
 				State.resetStats();
+
+				start = bean.getCurrentThreadCpuTime();
+				solution = problem.IDAStarSearch(puzzle.getHeuristicNumMisplacedTiles());
+				totalTime = bean.getCurrentThreadCpuTime() - start;
+				idaStarMisAverages[0][arrayIndex] += State.getNumExpandedStates();
+				idaStarMisAverages[1][arrayIndex] += problem.getMaxNodeCount();
+				idaStarMisAverages[2][arrayIndex] += totalTime/1000000000.0;
+				State.resetStats();
+
+				start = bean.getCurrentThreadCpuTime();
+				solution = problem.IDAStarSearch(puzzle.getHeuristicManhattanDistance());
+				totalTime = bean.getCurrentThreadCpuTime() - start;
+				idaStarManAverages[0][arrayIndex] += State.getNumExpandedStates();
+				idaStarManAverages[1][arrayIndex] += problem.getMaxNodeCount();
+				idaStarManAverages[2][arrayIndex] += totalTime/1000000000.0;
+				State.resetStats();
 			}
 
 			expandedNodes[arrayIndex][0] = optimalLength; 
 			expandedNodes[arrayIndex][1] = (idAverages[0][arrayIndex] / INSTANCES);
 			expandedNodes[arrayIndex][2] = (ucsAverages[0][arrayIndex] / INSTANCES);
 			expandedNodes[arrayIndex][3] = (aStarMisAverages[0][arrayIndex] / INSTANCES);
-			expandedNodes[arrayIndex][4] = (aStarManAverages[0][arrayIndex] / INSTANCES); 
+			expandedNodes[arrayIndex][4] = (aStarManAverages[0][arrayIndex] / INSTANCES);
+			expandedNodes[arrayIndex][5] = (idaStarMisAverages[0][arrayIndex] / INSTANCES);
+			expandedNodes[arrayIndex][6] = (idaStarManAverages[0][arrayIndex] / INSTANCES); 
 
 			maxNodes[arrayIndex][0] = optimalLength; 
 			maxNodes[arrayIndex][1] = (idAverages[1][arrayIndex] / INSTANCES);
 			maxNodes[arrayIndex][2] = (ucsAverages[1][arrayIndex] / INSTANCES);
 			maxNodes[arrayIndex][3] = (aStarMisAverages[1][arrayIndex] / INSTANCES);
 			maxNodes[arrayIndex][4] = (aStarManAverages[1][arrayIndex] / INSTANCES);
+			maxNodes[arrayIndex][5] = (idaStarMisAverages[1][arrayIndex] / INSTANCES);
+			maxNodes[arrayIndex][6] = (idaStarManAverages[1][arrayIndex] / INSTANCES);
 
 			cpuTime[arrayIndex][0] = optimalLength; 
 			cpuTime[arrayIndex][1] = (idAverages[2][arrayIndex] / INSTANCES);
 			cpuTime[arrayIndex][2] = (ucsAverages[2][arrayIndex] / INSTANCES);
 			cpuTime[arrayIndex][3] = (aStarMisAverages[2][arrayIndex] / INSTANCES);
 			cpuTime[arrayIndex][4] = (aStarManAverages[2][arrayIndex] / INSTANCES);
+			cpuTime[arrayIndex][5] = (idaStarMisAverages[2][arrayIndex] / INSTANCES);
+			cpuTime[arrayIndex][6] = (idaStarManAverages[2][arrayIndex] / INSTANCES);
 
 			optimalLength +=2;
-			System.out.println("Starting Optimal length gen " + optimalLength);
+			System.out.println("Generating " + INSTANCES + " puzzles of " + optimalLength + " length...");
 
 		}while(optimalLength <= MAX_DISTANCE);
 
 		printTables(expandedNodes, maxNodes, cpuTime);
-
-		// After constructing a SlidingTilePuzzle object above, construct a SearchProblem with it as the start state.
-
-		// Needed to time code.
-
-
-
-		//		System.out.println("Iterative Deepening");
-		//		long start = bean.getCurrentThreadCpuTime();
-		//		SearchNode solution = problem.iterativeDeepeningSearch();
-		//		long totalTime = bean.getCurrentThreadCpuTime() - start;
-		//		System.out.println("Time: " + (totalTime/1000000000.0));
-		//		System.out.println("Expanded: " + State.getNumExpandedStates());
-		//		System.out.println("Memory: " + problem.getMaxNodeCount());
-		//
-		//		if (solution != null) {
-		//			System.out.println("Path length: " + solution.getPathLengthToNode());
-		//			System.out.println("Path cost: " + solution.getG());
-		//			printSolutionPath(solution);
-		//		} else {
-		//			System.out.println("No solution found");
-		//		}
-		//
-		//
-		//
-		//		System.out.println("Uniform Cost Search");
-		//		start = bean.getCurrentThreadCpuTime();
-		//		solution = problem.uniformCostSearch();
-		//		totalTime = bean.getCurrentThreadCpuTime() - start;
-		//		System.out.println("Time: " + (totalTime/1000000000.0));
-		//		System.out.println("Expanded: " + State.getNumExpandedStates());
-		//		System.out.println("Memory: " + problem.getMaxNodeCount());
-		//
-		//		if (solution != null) {
-		//			System.out.println("Path length: " + solution.getPathLengthToNode());
-		//			System.out.println("Path cost: " + solution.getG());
-		//			printSolutionPath(solution);
-		//		} else {
-		//			System.out.println("No solution found");
-		//		}
-		//
-		//
-		//		System.out.println("A* Search: Num Misplaced Tiles");
-		//		start = bean.getCurrentThreadCpuTime();
-		//		solution = problem.AStarSearch(puzzle.getHeuristicNumMisplacedTiles());
-		//		totalTime = bean.getCurrentThreadCpuTime() - start;
-		//		System.out.println("Time: " + (totalTime/1000000000.0));
-		//		System.out.println("Expanded: " + State.getNumExpandedStates());
-		//		System.out.println("Memory: " + problem.getMaxNodeCount());
-		//
-		//		if (solution != null) {
-		//			System.out.println("Path length: " + solution.getPathLengthToNode());
-		//			System.out.println("Path cost: " + solution.getG());
-		//			printSolutionPath(solution);
-		//		} else {
-		//			System.out.println("No solution found");
-		//		}
-		//
-		//
-		//		System.out.println("A* Search: Manhattan Distance");
-		//		start = bean.getCurrentThreadCpuTime();
-		//		solution = problem.AStarSearch(puzzle.getHeuristicManhattanDistance());
-		//		totalTime = bean.getCurrentThreadCpuTime() - start;
-		//		System.out.println("Time: " + (totalTime/1000000000.0));
-		//		System.out.println("Expanded: " + State.getNumExpandedStates());
-		//		System.out.println("Memory: " + problem.getMaxNodeCount());
-		//
-		//		if (solution != null) {
-		//			System.out.println("Path length: " + solution.getPathLengthToNode());
-		//			System.out.println("Path cost: " + solution.getG());
-		//			printSolutionPath(solution);
-		//		} else {
-		//			System.out.println("No solution found");
-		//		}
-
 	}
 
 	private static void printTables(double[][] expandedNodes, double[][] maxNodes, double[][] cpuTime) {
-		String nodeFormat = "| %-12.1f | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
-		String cpuFormat = "| %-12.1f | %-15.10f | %-15.10f | %-15.10f | %-15.10f |%n";
+		String nodeFormat = "| %-12.1f | %-15.2f | %-15.2f | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
+		String cpuFormat = "| %-12.1f | %-15.10f | %-15.10f | %-15.10f | %-15.10f | %-15.10f | %-15.10f |%n";
 
 		System.out.println("+======Expanded Nodes======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		for (int i = 0; i < expandedNodes.length; i++) {
 			if(expandedNodes[i][1] == 0){
-				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f |%n";
+				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
 				System.out.format(nodeFormat, expandedNodes[i][0], "-", 
-						"-", expandedNodes[i][3], expandedNodes[i][4]);
+						"-", expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]);
 			} else {System.out.format(nodeFormat, expandedNodes[i][0], expandedNodes[i][1], 
-					expandedNodes[i][2], expandedNodes[i][3], expandedNodes[i][4]);
+					expandedNodes[i][2], expandedNodes[i][3], expandedNodes[i][4], expandedNodes[i][5], expandedNodes[i][6]);
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		}
 
 		System.out.println();
 		System.out.println("+======Max Memory Nodes======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		for (int i = 0; i < maxNodes.length; i++) {
 			if(maxNodes[i][1] == 0){
-				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f |%n";
+				nodeFormat = "| %-12.1f | %-15s | %-15s | %-15.2f | %-15.2f | %-15.2f | %-15.2f |%n";
 				System.out.format(nodeFormat, maxNodes[i][0], "-", 
-						"-", maxNodes[i][3], maxNodes[i][4]);
+						"-", maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]);
 			} else {
 				System.out.format(nodeFormat, maxNodes[i][0], maxNodes[i][1], maxNodes[i][2],
-						maxNodes[i][3], maxNodes[i][4]);
+						maxNodes[i][3], maxNodes[i][4], maxNodes[i][5], maxNodes[i][6]);
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		}
 
 
 		System.out.println();
 		System.out.println("+======CPU Time======+");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
-		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |%n");
-		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
+		System.out.format("| Path Length  |        ID       |       UCS       |    AStarMis     |    AStarMan     |   IDAStarMis    |   IDAStarMan    |%n");
+		System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		for (int i = 0; i < cpuTime.length; i++) {
 			if(maxNodes[i][1] == 0){
-				cpuFormat = "| %-12.1f | %-15s | %-15s | %-15.10f | %-15.10f |%n";
+				cpuFormat = "| %-12.1f | %-15s | %-15s | %-15.10f | %-15.10f | %-15.10f | %-15.10f |%n";
 				System.out.format(cpuFormat, cpuTime[i][0], "-", 
-						"-", cpuTime[i][3], cpuTime[i][4]);
+						"-", cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]);
 			} else {
 				System.out.format(cpuFormat, cpuTime[i][0], cpuTime[i][1], cpuTime[i][2],
-						cpuTime[i][3], cpuTime[i][4]);
+						cpuTime[i][3], cpuTime[i][4], cpuTime[i][5], cpuTime[i][6]);
 			}
-			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+%n");
+			System.out.format("+--------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+%n");
 		}
 
 	}
